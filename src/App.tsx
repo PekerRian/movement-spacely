@@ -16,7 +16,6 @@ import ProfileRegistrationModal from './components/ProfileRegistrationModal';
 import WelcomeBackModal from './components/WelcomeBackModal';
 import WalletSelector from './components/WalletSelector';
 const PRIVY_APP_ID = 'cmjnr5r4o01r5jh0cy2za0zaj';
-const wallets = [new PetraWallet()];
 function App() {
   return (
     <PrivyProvider
@@ -135,8 +134,8 @@ function AppContent() {
     }
   };
   const handleProfileCreated = async () => {
-    setHasProfile(true);
-    setalStorage.removeItem('spacely_registration_pending');
+    setShowRegistrationModal(false);
+    localStorage.removeItem('spacely_registration_pending');
 
     // Fetch the newly created profile
     if (account?.address) {
