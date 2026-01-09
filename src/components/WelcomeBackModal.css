@@ -1,0 +1,197 @@
+.welcome-modal {
+    max-width: 500px;
+    text-align: center;
+    border: 3px solid #ffd700;
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-secondary);
+}
+
+.welcome-header {
+    position: relative;
+    padding: 2rem 2rem 1rem 2rem;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.welcome-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    animation: wave 0.6s ease-in-out;
+}
+
+@keyframes wave {
+
+    0%,
+    100% {
+        transform: rotate(0deg);
+    }
+
+    25% {
+        transform: rotate(-10deg);
+    }
+
+    75% {
+        transform: rotate(10deg);
+    }
+}
+
+.welcome-header h2 {
+    margin: 0;
+    font-size: 2rem;
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.welcome-body {
+    padding: 2rem;
+}
+
+.user-greeting {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 237, 78, 0.05));
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.greeting-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.greeting-label {
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+.greeting-username {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #ffd700;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+.wallet-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+.wallet-label {
+    opacity: 0.6;
+}
+
+.wallet-value {
+    font-family: 'Courier New', monospace;
+    background: rgba(255, 215, 0, 0.1);
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+}
+
+.welcome-message {
+    margin-bottom: 1.5rem;
+}
+
+.welcome-message p {
+    margin: 0.5rem 0;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.welcome-message p:first-child {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.action-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: rgba(255, 215, 0, 0.05);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.action-item:hover {
+    background: rgba(255, 215, 0, 0.15);
+    border-color: rgba(255, 215, 0, 0.4);
+    transform: translateY(-2px);
+}
+
+.action-icon {
+    font-size: 2rem;
+}
+
+.action-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.modal-footer {
+    padding: 0 2rem 2rem 2rem;
+}
+
+.modal-footer .primary-btn {
+    font-size: 1.1rem;
+    padding: 1rem;
+}
+
+/* Animation entrance */
+.welcome-modal {
+    animation: slideInUp 0.4s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .welcome-modal {
+        max-width: 90%;
+    }
+
+    .greeting-username {
+        font-size: 1.5rem;
+    }
+
+    .quick-actions {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .action-item {
+        flex-direction: row;
+        justify-content: flex-start;
+        padding: 0.75rem 1rem;
+    }
+
+    .action-icon {
+        font-size: 1.5rem;
+    }
+}

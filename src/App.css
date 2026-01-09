@@ -7,6 +7,7 @@
   border-bottom: 1px solid var(--glass-border);
   box-shadow: var(--shadow-md);
 }
+
 .nav-container {
   max-width: 1400px;
   margin: 0 auto;
@@ -16,42 +17,53 @@
   justify-content: space-between;
   gap: var(--spacing-xl);
 }
+
 .nav-logo {
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
-  font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-family: var(--font-logo);
+  font-size: 2.5rem;
   font-weight: 700;
   cursor: pointer;
   transition: transform var(--transition-fast);
   text-decoration: none;
   color: inherit;
 }
+
 .nav-logo:hover {
   transform: scale(1.05);
 }
+
 .logo-icon {
-  width: 40px;
-  height: 40px;
-  background: var(--gradient-cosmic);
+  width: 70px;
+  height: 70px;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
   animation: iconFloat 3s ease-in-out infinite;
+  overflow: hidden;
 }
+
+.nav-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .logo-text {
   background: var(--gradient-cosmic);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
 .nav-links {
   display: flex;
   gap: var(--spacing-sm);
 }
+
 .nav-link {
   display: flex;
   align-items: center;
@@ -64,6 +76,7 @@
   transition: all var(--transition-base);
   position: relative;
 }
+
 .nav-link::before {
   content: '';
   position: absolute;
@@ -73,18 +86,22 @@
   opacity: 0;
   transition: opacity var(--transition-base);
 }
+
 .nav-link:hover::before,
 .nav-link.active::before {
   opacity: 0.15;
 }
+
 .nav-link:hover,
 .nav-link.active {
   color: var(--color-text-primary);
 }
+
 .nav-icon {
   font-size: 1.25rem;
   position: relative;
 }
+
 .connect-wallet-btn {
   display: flex;
   align-items: center;
@@ -100,15 +117,18 @@
   transition: all var(--transition-base);
   box-shadow: var(--shadow-glow);
 }
+
 .connect-wallet-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
 }
+
 .wallet-info {
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
 }
+
 .wallet-address {
   padding: var(--spacing-sm) var(--spacing-md);
   background: var(--color-bg-tertiary);
@@ -117,6 +137,7 @@
   font-family: monospace;
   font-size: 0.9rem;
 }
+
 .disconnect-btn {
   padding: var(--spacing-sm) var(--spacing-md);
   background: transparent;
@@ -126,43 +147,53 @@
   cursor: pointer;
   transition: all var(--transition-base);
 }
+
 .disconnect-btn:hover {
   background: var(--color-bg-tertiary);
   color: var(--color-text-primary);
 }
+
 .main-content {
   max-width: 1400px;
   margin: 0 auto;
   padding: var(--spacing-2xl);
 }
+
 .btn-icon {
   font-size: 1.125rem;
 }
+
 @media (max-width: 1024px) {
   .nav-container {
     padding: var(--spacing-md);
   }
+
   .nav-links {
     gap: var(--spacing-xs);
   }
+
   .nav-link {
     padding: var(--spacing-sm) var(--spacing-md);
     font-size: 0.9rem;
   }
 }
+
 @media (max-width: 768px) {
   .nav-container {
     flex-wrap: wrap;
     padding: var(--spacing-sm) var(--spacing-md);
   }
+
   .nav-logo {
     font-size: 1.25rem;
   }
+
   .logo-icon {
     width: 35px;
     height: 35px;
     font-size: 1.25rem;
   }
+
   .nav-links {
     order: 3;
     width: 100%;
@@ -170,60 +201,75 @@
     padding-top: var(--spacing-sm);
     gap: var(--spacing-xs);
   }
+
   .nav-link {
     flex-direction: column;
     padding: var(--spacing-sm);
     gap: var(--spacing-xs);
     font-size: 0.75rem;
   }
+
   .nav-link span:not(.nav-icon) {
     font-size: 0.7rem;
   }
+
   .nav-icon {
     font-size: 1.5rem;
   }
+
   .nav-actions {
     order: 2;
   }
+
   .connect-wallet-btn {
     padding: var(--spacing-sm) var(--spacing-md);
     font-size: 0.85rem;
   }
+
   .btn-icon {
     font-size: 1rem;
   }
+
   .wallet-info {
     flex-direction: column;
     gap: var(--spacing-sm);
     align-items: flex-end;
   }
+
   .wallet-address {
     font-size: 0.8rem;
     padding: var(--spacing-xs) var(--spacing-sm);
   }
+
   .disconnect-btn {
     padding: var(--spacing-xs) var(--spacing-sm);
     font-size: 0.85rem;
   }
+
   .main-content {
     padding: var(--spacing-md);
   }
 }
+
 @media (max-width: 480px) {
   .nav-logo {
     font-size: 1.1rem;
   }
+
   .logo-icon {
     width: 30px;
     height: 30px;
     font-size: 1.1rem;
   }
+
   .nav-link {
     padding: var(--spacing-xs);
   }
+
   .connect-wallet-btn span:not(.btn-icon) {
     display: none;
   }
+
   .main-content {
     padding: var(--spacing-sm);
   }

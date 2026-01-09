@@ -15,6 +15,7 @@
     "@privy-io/react-auth": "^3.10.0",
     "@telegram-apps/bridge": "^2.11.0",
     "aptos": "^1.22.1",
+    "lucide-react": "^0.562.0",
     "petra-plugin-wallet-adapter": "^0.4.5",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

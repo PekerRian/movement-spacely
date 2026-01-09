@@ -1,0 +1,236 @@
+.dm-modal {
+    max-width: 550px;
+    border: 3px solid #ffd700;
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-secondary);
+}
+
+.dm-modal .modal-header {
+    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+    padding: 1.5rem 2rem;
+}
+
+.dm-header-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.dm-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--gradient-aurora);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-bg-primary);
+    flex-shrink: 0;
+}
+
+.dm-header-info h2 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.dm-recipient {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+}
+
+.recipient-name {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.dm-modal .modal-form {
+    padding: 2rem;
+}
+
+.dm-modal .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.dm-modal label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--color-text-primary);
+}
+
+.dm-modal textarea {
+    width: 100%;
+    padding: 1rem;
+    background: var(--color-bg-secondary);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    font-size: 0.95rem;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 120px;
+    transition: all var(--transition-base);
+}
+
+.dm-modal textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    background: rgba(255, 215, 0, 0.05);
+}
+
+.dm-modal textarea.error {
+    border-color: var(--color-error);
+}
+
+.dm-modal textarea:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.message-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+}
+
+.char-count {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    font-family: 'Courier New', monospace;
+}
+
+.dm-modal .form-hint {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    opacity: 0.8;
+}
+
+.dm-modal .error-hint {
+    font-size: 0.85rem;
+    color: var(--color-error);
+    font-weight: 500;
+}
+
+.dm-modal .modal-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: flex-end;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 215, 0, 0.1);
+}
+
+.dm-modal .modal-actions button {
+    min-width: 130px;
+}
+
+.dm-modal .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(0, 0, 0, 0.3);
+    border-top-color: var(--color-bg-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 0.5rem;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Modal entrance animation */
+.dm-modal {
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .modal-content.dm-modal {
+        max-width: 90%;
+        width: 90%;
+    }
+
+    .dm-modal {
+        max-width: 90%;
+        width: 90%;
+    }
+
+    .dm-modal .modal-header {
+        padding: 1.25rem 1.5rem;
+    }
+
+    .dm-header-info {
+        gap: 0.75rem;
+    }
+
+    .dm-avatar {
+        width: 42px;
+        height: 42px;
+        font-size: 1.25rem;
+    }
+
+    .dm-header-info h2 {
+        font-size: 1.25rem;
+    }
+
+    .dm-modal .modal-form {
+        padding: 1.25rem;
+    }
+
+    .dm-modal textarea {
+        min-height: 140px !important;
+        height: 140px !important;
+        padding: 1rem !important;
+        font-size: 1rem !important;
+    }
+
+    .dm-modal .form-group {
+        margin-bottom: 0.75rem;
+    }
+
+    .dm-modal .modal-actions {
+        flex-direction: row !important;
+        gap: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid rgba(255, 215, 0, 0.1);
+        justify-content: center;
+    }
+
+    .modal-content.dm-modal .primary-btn,
+    .modal-content.dm-modal .secondary-btn,
+    .dm-modal .primary-btn,
+    .dm-modal .secondary-btn {
+        flex: 1;
+        min-width: unset !important;
+        width: auto;
+        padding: 0.75rem 1rem !important;
+        font-size: 0.85rem !important;
+    }
+
+    /* Hide the textual label on small screens so only the icon remains */
+    .modal-content.dm-modal .primary-btn .send-text,
+    .dm-modal .primary-btn .send-text {
+        display: none !important;
+    }
+}

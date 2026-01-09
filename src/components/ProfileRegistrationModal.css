@@ -1,5 +1,8 @@
 .registration-modal {
     max-width: 550px;
+    border: 3px solid #ffd700;
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-secondary);
 }
 .modal-subtitle {
     color: var(--color-text-secondary);

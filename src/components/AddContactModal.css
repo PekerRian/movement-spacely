@@ -1,0 +1,140 @@
+.add-contact-modal {
+    max-width: 480px;
+    border: 3px solid #ffd700;
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-secondary);
+}
+
+.add-contact-modal .modal-header {
+    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+    padding: 1.5rem 2rem;
+}
+
+.add-contact-modal .modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.add-contact-modal .modal-form {
+    padding: 2rem;
+}
+
+.add-contact-modal .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.add-contact-modal label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--color-text-primary);
+}
+
+.add-contact-modal input[type="text"] {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background: var(--color-bg-secondary);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    font-size: 0.95rem;
+    font-family: 'Courier New', monospace;
+    transition: all var(--transition-base);
+}
+
+.add-contact-modal input[type="text"]:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    background: rgba(255, 215, 0, 0.05);
+}
+
+.add-contact-modal input[type="text"].error {
+    border-color: var(--color-error);
+}
+
+.add-contact-modal input[type="text"]:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.add-contact-modal .form-hint {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    opacity: 0.8;
+}
+
+.add-contact-modal .error-hint {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--color-error);
+    font-weight: 500;
+}
+
+.add-contact-modal .modal-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: flex-end;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 215, 0, 0.1);
+}
+
+.add-contact-modal .modal-actions button {
+    min-width: 120px;
+}
+
+.add-contact-modal .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(0, 0, 0, 0.3);
+    border-top-color: var(--color-bg-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 0.5rem;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Modal entrance animation */
+.add-contact-modal {
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .add-contact-modal {
+        max-width: 90%;
+    }
+
+    .add-contact-modal .modal-form {
+        padding: 1.5rem;
+    }
+
+    .add-contact-modal .modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .add-contact-modal .modal-actions button {
+        width: 100%;
+    }
+}

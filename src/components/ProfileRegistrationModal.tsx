@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { useWallet } from '@aptos-labs/wallet-adapter-react';
+import { MODULES } from '../constants/contracts';
 import './ProfileRegistrationModal.css';
 interface ProfileRegistrationModalProps {
     isOpen: boolean;
@@ -8,7 +9,7 @@ interface ProfileRegistrationModalProps {
     onClose: () => void;
     onProfileCreated: () => void;
 }
-const MODULE_ADDRESS = 'a33869c482c817859d4043da2a9c264a95da932812d1c1d4de24f46a168c3917';
+
 function ProfileRegistrationModal({ isOpen, walletAddress, onClose, onProfileCreated }: ProfileRegistrationModalProps) {
     const { login, logout, authenticated, user } = usePrivy();
     const { signAndSubmitTransaction } = useWallet();
@@ -21,10 +22,14 @@ function ProfileRegistrationModal({ isOpen, walletAddress, onClose, onProfileCre
     const [error, setError] = useState('');
     useEffect(() => {
         if (authenticated && user?.twitter) {
+            let pfp = user?.twitter?.profilePictureUrl || '';
+            if (pfp.includes('pbs.twimg.com')) {
+                pfp = pfp.replace('_normal', '_400x400').replace('_bigger', '_400x400').replace('_mini', '_400x400');
+            }
             setFormData(prev => ({
                 ...prev,
-                twitter: `@${user.twitter.username}`,
-                pfp: user.twitter.profilePictureUrl || prev.pfp
+                twitter: `@${user?.twitter?.username}`,
+                pfp: pfp || prev.pfp
             }));
         }
     }, [authenticated, user]);
@@ -34,10 +39,14 @@ function ProfileRegistrationModal({ isOpen, walletAddress, onClose, onProfileCre
                 loginMethods: ['twitter'],
             });
             if (user?.twitter) {
+                let pfp = user?.twitter?.profilePictureUrl || '';
+                if (pfp.includes('pbs.twimg.com')) {
+                    pfp = pfp.replace('_normal', '_400x400').replace('_bigger', '_400x400').replace('_mini', '_400x400');
+                }
                 setFormData({
                     ...formData,
-                    twitter: `@${user.twitter.username}`,
-                    pfp: user.twitter.profilePictureUrl || formData.pfp
+                    twitter: `@${user?.twitter?.username}`,
+                    pfp: pfp || formData.pfp
                 });
             }
         } catch (err) {
@@ -68,7 +77,7 @@ function ProfileRegistrationModal({ isOpen, walletAddress, onClose, onProfileCre
             }
             const payload = {
                 data: {
-                    function: `${MODULE_ADDRESS}::profile::create_profile`,
+                    function: MODULES.PROFILE.CREATE_PROFILE,
                     typeArguments: [],
                     functionArguments: [
                         formData.username,
