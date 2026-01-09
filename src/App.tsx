@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { AptosWalletAdapterProvider, useWallet } from '@aptos-labs/wallet-adapter-react';
-import { PetraWallet } from 'petra-plugin-wallet-adapter';
 import { PrivyProvider } from '@privy-io/react-auth';
 import { Aptos, AptosConfig, Network } from '@aptos-labs/ts-sdk';
 import { Home as HomeIcon, Calendar as CalendarIcon, User as UserIcon, Globe as GlobeIcon } from 'lucide-react';
