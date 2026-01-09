@@ -179,14 +179,13 @@ function Community({ walletConnected }: CommunityProps) {
     };
 
     useEffect(() => {
-        if (walletConnected) {
-            checkGlobalChatInitialized();
-            fetchMessages();
-            // Refresh messages every 10 seconds
-            const interval = setInterval(fetchMessages, 10000);
-            return () => clearInterval(interval);
-        }
-    }, [walletConnected]);
+        // Always fetch messages, regardless of wallet connection
+        checkGlobalChatInitialized();
+        fetchMessages();
+        // Refresh messages every 10 seconds
+        const interval = setInterval(fetchMessages, 10000);
+        return () => clearInterval(interval);
+    }, []);
 
     const handleSendMessage = async () => {
         setChatError('');

@@ -18,9 +18,40 @@ interface NewsItem {
 
 const NewsCard = ({ item }: { item: NewsItem }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
+    const cardRef = useRef<HTMLArticleElement>(null);
     const [isHovered, setIsHovered] = useState(false);
+    const [isInView, setIsInView] = useState(false);
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+    // Detect mobile on mount and resize
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    // Intersection Observer for mobile autoplay
+    useEffect(() => {
+        if (!isMobile || !cardRef.current) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                setIsInView(entry.isIntersecting);
+                if (entry.isIntersecting && videoRef.current) {
+                    videoRef.current.play().catch(e => console.log("Video play interrupted", e));
+                } else if (videoRef.current) {
+                    videoRef.current.pause();
+                }
+            },
+            { threshold: 0.5 }
+        );
+
+        observer.observe(cardRef.current);
+        return () => observer.disconnect();
+    }, [isMobile]);
 
     const handleMouseEnter = () => {
+        if (isMobile) return; // Skip on mobile
         setIsHovered(true);
         if (videoRef.current) {
             videoRef.current.play().catch(e => console.log("Video play interrupted", e));
@@ -28,6 +59,7 @@ const NewsCard = ({ item }: { item: NewsItem }) => {
     };
 
     const handleMouseLeave = () => {
+        if (isMobile) return; // Skip on mobile
         setIsHovered(false);
         if (videoRef.current) {
             videoRef.current.pause();
@@ -37,6 +69,7 @@ const NewsCard = ({ item }: { item: NewsItem }) => {
 
     return (
         <article
+            ref={cardRef}
             className={`news-card ${item.featured ? 'featured' : ''}`}
             onClick={item.onClick}
             onMouseEnter={handleMouseEnter}
@@ -64,7 +97,7 @@ const NewsCard = ({ item }: { item: NewsItem }) => {
                             position: 'absolute',
                             top: 0,
                             left: 0,
-                            opacity: isHovered ? 1 : 0,
+                            opacity: isMobile ? (isInView ? 1 : 0) : (isHovered ? 1 : 0),
                             transition: 'opacity 0.3s ease'
                         }}
                     />
