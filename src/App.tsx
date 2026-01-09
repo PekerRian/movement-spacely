@@ -30,7 +30,7 @@ function App() {
         },
       }}
     >
-      <AptosWalletAdapterProvider options={{ wallets, autoConnect: false }}>
+      <AptosWalletAdapterProvider>
         <Router>
           <AppContent />
         </Router>
@@ -89,7 +89,6 @@ function AppContent() {
     if (connected && account?.address) {
       const checkAndShowModal = async () => {
         const profileExists = await checkProfileExists(account.address.toString());
-        setHasProfile(profileExists);
         if (profileExists) {
           // Show welcome back modal for existing users
           setShowWelcomeBackModal(true);
@@ -102,7 +101,6 @@ function AppContent() {
       };
       checkAndShowModal();
     } else {
-      setHasProfile(false);
       setShowRegistrationModal(false);
       setShowWelcomeBackModal(false);
       setProfileData(null);
@@ -130,7 +128,6 @@ function AppContent() {
   const disconnectWallet = async () => {
     try {
       await disconnect();
-      setHasProfile(false);
       setShowRegistrationModal(false);
       localStorage.removeItem('spacely_registration_pending');
     } catch (error) {
@@ -139,8 +136,7 @@ function AppContent() {
   };
   const handleProfileCreated = async () => {
     setHasProfile(true);
-    setShowRegistrationModal(false);
-    localStorage.removeItem('spacely_registration_pending');
+    setalStorage.removeItem('spacely_registration_pending');
 
     // Fetch the newly created profile
     if (account?.address) {
