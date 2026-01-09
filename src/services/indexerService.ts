@@ -1,4 +1,4 @@
-import { NETWORK_CONFIG, MODULE_ADDRESS } from '../constants/contracts';
+import { NETWORK_CONFIG } from '../constants/contracts';
 
 /**
  * Indexer service for efficient read-only queries without requiring transactions
@@ -175,9 +175,7 @@ export async function getProfileFromIndexer(userAddress: string): Promise<any | 
  * Subscribe to new messages (optional - uses GraphQL subscriptions)
  * Real-time updates without polling
  */
-export async function subscribeToMessages(
-    callback: (messages: any[]) => void
-): Promise<() => void> {
+export async function subscribeToMessages(): Promise<() => void> {
     // This would require WebSocket support
     // For now, returning a no-op unsubscribe function
     console.log('Message subscription would use WebSocket connections');

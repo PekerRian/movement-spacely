@@ -15,10 +15,6 @@ import Community from './pages/Community';
 import ProfileRegistrationModal from './components/ProfileRegistrationModal';
 import WelcomeBackModal from './components/WelcomeBackModal';
 import WalletSelector from './components/WalletSelector';
-const CONFIG = {
-  moduleAddress: 'c27f267e2490e6df72fc28acbd76b5dbdf35c69a7fbe704a6247fcfc7265cf89',
-  network: 'testnet',
-};
 const PRIVY_APP_ID = 'cmjnr5r4o01r5jh0cy2za0zaj';
 const wallets = [new PetraWallet()];
 function App() {
@@ -32,12 +28,9 @@ function App() {
           accentColor: '#ffd700',
           showWalletLoginFirst: false,
         },
-        embeddedWallets: {
-          createOnLogin: 'off',
-        },
       }}
     >
-      <AptosWalletAdapterProvider plugins={wallets} autoConnect={false}>
+      <AptosWalletAdapterProvider options={{ wallets, autoConnect: false }}>
         <Router>
           <AppContent />
         </Router>
@@ -46,8 +39,7 @@ function App() {
   );
 }
 function AppContent() {
-  const { connect, disconnect, account, connected } = useWallet();
-  const [hasProfile, setHasProfile] = useState(false);
+  const { disconnect, account, connected } = useWallet();
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [showWelcomeBackModal, setShowWelcomeBackModal] = useState(false);
   const [showWalletSelector, setShowWalletSelector] = useState(false);
@@ -98,7 +90,6 @@ function AppContent() {
       const checkAndShowModal = async () => {
         const profileExists = await checkProfileExists(account.address.toString());
         setHasProfile(profileExists);
-
         if (profileExists) {
           // Show welcome back modal for existing users
           setShowWelcomeBackModal(true);

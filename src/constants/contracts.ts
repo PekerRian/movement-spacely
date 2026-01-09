@@ -64,6 +64,7 @@ export const MODULES = {
 // Network configuration
 export const NETWORK_CONFIG = {
     REST_URL: 'https://testnet.movementnetwork.xyz/v1',
+    INDEXER_URL: 'https://api.testnet.movementnetwork.xyz/graphql',
     FAUCET_URL: 'https://faucet.testnet.movementnetwork.xyz/',
     EXPLORER_URL: 'https://explorer.movementnetwork.xyz',
 };

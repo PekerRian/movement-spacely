@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useWallet } from '@aptos-labs/wallet-adapter-react';
 import { MODULES, NETWORK_CONFIG } from '../constants/contracts';
 import './MessageViewer.css';
 
