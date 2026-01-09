@@ -222,7 +222,7 @@ function Navigation({ walletConnected, walletAddress, connectWallet, disconnectW
       <div className="nav-container">
         <Link to="/" className="nav-logo">
           <div className="logo-icon">
-            <img src="/public/logo.PNG" alt="Spacely Logo" className="nav-logo-img" />
+            <img src="logo.PNG" alt="Spacely Logo" className="nav-logo-img" />
           </div>
           <span className="logo-text">Spacely</span>
         </Link>
