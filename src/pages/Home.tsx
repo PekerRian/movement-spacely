@@ -18,7 +18,7 @@ interface NewsItem {
 
 const NewsCard = ({ item }: { item: NewsItem }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
-    const cardRef = useRef<HTMLArticleElement>(null);
+    const cardRef = useRef<HTMLElement>(null);
     const [isHovered, setIsHovered] = useState(false);
     const [isInView, setIsInView] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
