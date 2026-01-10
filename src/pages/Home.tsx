@@ -1,14 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useWallet } from '@aptos-labs/wallet-adapter-react';
 import { MODULES, NETWORK_CONFIG, MODULE_ADDRESS } from '../constants/contracts';
 import './Home.css';
+import SuccessModal from '../components/SuccessModal';
+import ArticlesModal from '../components/ArticlesModal';
 
 interface NewsItem {
     id: number;
     title: string;
     content: string;
-    category: string;
-    date: string;
     image?: string;
     video?: string;
     gradient: string;
@@ -106,18 +107,16 @@ const NewsCard = ({ item }: { item: NewsItem }) => {
             <div className="news-content">
                 <h2>{item.title}</h2>
                 <p>{item.content}</p>
-                <div className="news-meta">
-                    <span className="news-date">{item.date}</span>
-                    <span className="news-category">{item.category}</span>
-                </div>
             </div>
         </article>
     );
 };
 
 function Home() {
+    const navigate = useNavigate();
     const { account, signAndSubmitTransaction } = useWallet();
     const [upsLoading, setUpsLoading] = useState(false);
+    const [successModal, setSuccessModal] = useState({ isOpen: false, title: '', message: '' });
     const [upsData, setUpsData] = useState({
         hasAccount: false,
         balance: 0,
@@ -128,25 +127,23 @@ function Home() {
         isChecking: true
     });
     const [showClaimModal, setShowClaimModal] = useState(false);
+    const [showArticlesModal, setShowArticlesModal] = useState(false);
 
     const newsItems: NewsItem[] = [
         {
             id: 1,
             title: 'Welcome to Spacely! 🚀',
             content: 'Your decentralized social hub is now live on Movement blockchain. Connect your wallet to get started and earn Stars daily!',
-            category: 'Announcement',
-            date: 'Just now',
             video: '/spacely.mp4',
             image: '/spacely.jpg',
             gradient: 'linear-gradient(135deg, #ffd700 0%, #ff8c00 100%)',
-            featured: true
+            featured: true,
+            onClick: () => setShowArticlesModal(true)
         },
         {
             id: 2,
             title: 'Daily Star Claims Live! ⚡',
             content: 'Claim your daily Stars and build your streak. The longer your streak, the more you earn!',
-            category: 'Feature',
-            date: '2 hours ago',
             video: '/stars.mp4',
             image: '/stars.jpg',
             gradient: 'linear-gradient(135deg, #ffed4e 0%, #ffa500 100%)',
@@ -155,25 +152,23 @@ function Home() {
         },
         {
             id: 3,
-            title: 'Create Your First Event 📅',
-            content: 'Host events and invite the community. Share your schedule and connect with others.',
-            category: 'Tutorial',
-            date: '5 hours ago',
+            title: 'Create Your First Space 📅',
+            content: 'Host spaces and invite the community. Share your schedule and connect with others.',
             video: '/sched.mp4',
             image: '/sched.png',
             gradient: 'linear-gradient(135deg, #ffc107 0%, #ff6f00 100%)',
-            featured: false
+            featured: false,
+            onClick: () => navigate('/calendar')
         },
         {
             id: 4,
             title: 'Join the Community Chat 💬',
             content: 'Connect with fellow users in our public forum or send private messages to your contacts.',
-            category: 'Community',
-            date: '1 day ago',
             video: '/chat.mp4',
             image: '/chat.jpg',
             gradient: 'linear-gradient(135deg, #ffb700 0%, #ff9100 100%)',
-            featured: false
+            featured: false,
+            onClick: () => navigate('/community')
         },
     ];
 
@@ -223,16 +218,11 @@ function Home() {
             }
 
             // Fetch Full Data in Parallel
-            const [balanceRes, streakRes, canClaimRes, timeRes, amountRes] = await Promise.all([
+            const [upsInfoRes, canClaimRes, timeRes, amountRes] = await Promise.all([
                 fetch(`${NETWORK_CONFIG.REST_URL}/view`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ function: MODULES.UPS.GET_BALANCE, type_arguments: [], arguments: [account.address.toString()] })
-                }),
-                fetch(`${NETWORK_CONFIG.REST_URL}/view`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ function: MODULES.UPS.GET_STREAK, type_arguments: [], arguments: [account.address.toString()] })
+                    body: JSON.stringify({ function: MODULES.UPS.GET_FULL_ACCOUNT_INFO, type_arguments: [], arguments: [account.address.toString()] })
                 }),
                 fetch(`${NETWORK_CONFIG.REST_URL}/view`, {
                     method: 'POST',
@@ -251,17 +241,29 @@ function Home() {
                 })
             ]);
 
-            const [balance] = await balanceRes.json();
-            const [streak] = await streakRes.json();
-            const [canClaim] = await canClaimRes.json();
-            const [timeUntil] = await timeRes.json();
-            const [nextAmount] = await amountRes.json();
+            // Safely parse JSON results
+            const safeParse = async (res: Response, fallback: any = 0) => {
+                if (!res.ok) return [fallback];
+                try {
+                    const data = await res.json();
+                    return Array.isArray(data) ? data : [data];
+                } catch {
+                    return [fallback];
+                }
+            };
+
+            const [upsInfo] = await safeParse(upsInfoRes, [0, 0, 0, 0, 0, 0]);
+            const balance = Number(upsInfo[0] || 0);
+            const streak = Number(upsInfo[1] || 0);
+            const [canClaim] = await safeParse(canClaimRes, false);
+            const [timeUntil] = await safeParse(timeRes);
+            const [nextAmount] = await safeParse(amountRes);
 
             setUpsData({
                 hasAccount: true,
                 balance: Number(balance || 0),
                 streak: Number(streak || 0),
-                canClaim: canClaim === true,
+                canClaim: canClaim === true || canClaim === "true",
                 timeUntilNextClaim: Number(timeUntil || 0),
                 nextClaimAmount: Number(nextAmount || 0),
                 isChecking: false
@@ -296,15 +298,20 @@ function Home() {
                 }
             });
 
-            alert(upsData.hasAccount ? "Daily Stars Claimed! ⚡" : "Account Ready! Click Claim again to get your reward.");
-
             // Optimistic update: If we just initialized, switch UI immediately
             if (!upsData.hasAccount) {
                 setUpsData(prev => ({ ...prev, hasAccount: true, canClaim: true, isChecking: false }));
             }
 
-            // Wait a moment for chain update then refresh
-            setTimeout(fetchUpsData, 2000);
+            await fetchUpsData(); // Refresh data after transaction
+            setSuccessModal({
+                isOpen: true,
+                title: upsData.hasAccount ? "Stars Claimed! ⚡" : "Account Ready!",
+                message: upsData.hasAccount
+                    ? "Your daily Stars reward has been added to your balance."
+                    : "Your account is now ready! Click Claim again to get your first reward."
+            });
+
             if (upsData.canClaim) {
                 setShowClaimModal(false); // Close modal after successful claim
             }
@@ -370,9 +377,16 @@ function Home() {
                                     }}>
                                         <div style={{ fontSize: '0.9rem', opacity: 0.7, marginBottom: '0.5rem' }}>Current Streak</div>
                                         <div style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>🔥 0 Days</div>
-                                        <p style={{ margin: 0, opacity: 0.8, fontSize: '0.9rem' }}>
-                                            Initialize to unlock daily claims!
-                                        </p>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem' }}>
+                                            <div style={{ textAlign: 'left' }}>
+                                                <div style={{ fontSize: '0.8rem', opacity: 0.6 }}>Next Reward</div>
+                                                <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>+3 Stars</div>
+                                            </div>
+                                            <div style={{ textAlign: 'right' }}>
+                                                <div style={{ fontSize: '0.8rem', opacity: 0.6 }}>Status</div>
+                                                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#ff9800' }}>Locked</div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <button
                                         className="primary-btn full-width"
@@ -396,7 +410,9 @@ function Home() {
                                         <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem' }}>
                                             <div style={{ textAlign: 'left' }}>
                                                 <div style={{ fontSize: '0.8rem', opacity: 0.6 }}>Next Reward</div>
-                                                <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>+{upsData.nextClaimAmount} Stars</div>
+                                                <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>
+                                                    +{Math.min(90, (upsData.streak + 1) * 3)} Stars
+                                                </div>
                                             </div>
                                             <div style={{ textAlign: 'right' }}>
                                                 <div style={{ fontSize: '0.8rem', opacity: 0.6 }}>Status</div>
@@ -436,6 +452,18 @@ function Home() {
                     <NewsCard key={item.id} item={item} />
                 ))}
             </div>
+            <ArticlesModal
+                isOpen={showArticlesModal}
+                onClose={() => setShowArticlesModal(false)}
+            />
+            {successModal.isOpen && (
+                <SuccessModal
+                    isOpen={successModal.isOpen}
+                    title={successModal.title}
+                    message={successModal.message}
+                    onClose={() => setSuccessModal({ ...successModal, isOpen: false })}
+                />
+            )}
         </div>
     );
 }

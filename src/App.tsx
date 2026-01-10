@@ -14,6 +14,8 @@ import Community from './pages/Community';
 import ProfileRegistrationModal from './components/ProfileRegistrationModal';
 import WelcomeBackModal from './components/WelcomeBackModal';
 import WalletSelector from './components/WalletSelector';
+import SuccessModal from './components/SuccessModal';
+import BackgroundMusic from './components/BackgroundMusic';
 const PRIVY_APP_ID = 'cmjnr5r4o01r5jh0cy2za0zaj';
 function App() {
   return (
@@ -43,6 +45,7 @@ function AppContent() {
   const [showWalletSelector, setShowWalletSelector] = useState(false);
   const [isCheckingProfile, setIsCheckingProfile] = useState(false);
   const [profileData, setProfileData] = useState<{ username: string; twitter: string } | null>(null);
+  const [successModal, setSuccessModal] = useState({ isOpen: false, title: '', message: '' });
   const walletAddress = account?.address?.toString() || null;
   const walletConnected = connected;
 
@@ -136,12 +139,15 @@ function AppContent() {
     setShowRegistrationModal(false);
     localStorage.removeItem('spacely_registration_pending');
 
-    // Fetch the newly created profile
     if (account?.address) {
       await checkProfileExists(account.address.toString());
     }
 
-    alert('✨ Profile created successfully! Welcome to Spacely!');
+    setSuccessModal({
+      isOpen: true,
+      title: 'Success!',
+      message: '✨ Profile created successfully! Welcome to Spacely!'
+    });
   };
   const formatAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -191,6 +197,15 @@ function AppContent() {
           />
         </>
       )}
+      {successModal.isOpen && (
+        <SuccessModal
+          isOpen={successModal.isOpen}
+          title={successModal.title}
+          message={successModal.message}
+          onClose={() => setSuccessModal({ ...successModal, isOpen: false })}
+        />
+      )}
+      <BackgroundMusic />
     </div>
   );
 }

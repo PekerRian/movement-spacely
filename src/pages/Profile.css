@@ -237,7 +237,7 @@
 
     .profile-details {
         padding: var(--spacing-lg);
-        padding-top: 60px;
+        padding-top: 85px;
     }
 
     .profile-details h2 {
@@ -308,7 +308,7 @@
 
     .profile-details {
         padding: var(--spacing-md);
-        padding-top: 50px;
+        padding-top: 75px;
     }
 
     .profile-details h2 {
@@ -528,13 +528,6 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     transition: all var(--transition-base);
-    cursor: pointer;
-}
-
-.conversation-item:hover {
-    background: rgba(255, 215, 0, 0.05);
-    border-color: rgba(255, 215, 0, 0.3);
-    transform: translateX(4px);
 }
 
 .conversation-avatar {
@@ -549,6 +542,7 @@
     font-weight: 700;
     color: var(--color-bg-primary);
     flex-shrink: 0;
+    overflow: hidden;
 }
 
 .conversation-details {

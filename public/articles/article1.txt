@@ -1,0 +1,3 @@
+TEXT:Developer tooling, games, DeFi, and “wait, who built this already?” apps are all being cooked up in the M1 Hackathon. It’s less hackathon and more blockchain buffet — everyone’s building, shipping, and pretending they slept last night.
+URL:https://x.com/moveindustries/status/1995865149568417941?s=20
+MEDIA:hackathon.mp4

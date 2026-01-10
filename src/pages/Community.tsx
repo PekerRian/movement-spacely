@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useWallet } from '@aptos-labs/wallet-adapter-react';
 import { MODULES, NETWORK_CONFIG } from '../constants/contracts';
+import { getTopProfilesFromIndexer } from '../services/indexerService';
 import './Community.css';
 
 interface CommunityProps {
@@ -28,11 +29,16 @@ function Community({ walletConnected }: CommunityProps) {
     // Cache for profile pictures - key: address, value: pfp URL
     const [profilePictures, setProfilePictures] = useState<Record<string, string>>({});
 
-    const leaderboard = [
-        { rank: 1, username: 'SpaceExplorer', avatar: '🌟', score: 12500, streak: 15 },
-        { rank: 2, username: 'CosmicTrader', avatar: '⚡', score: 10800, streak: 12 },
-        { rank: 3, username: 'BlockchainPro', avatar: '🚀', score: 9200, streak: 10 }
-    ];
+    const [leaderboardFilter, setLeaderboardFilter] = useState<'received' | 'sent' | 'balance'>('received');
+    const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
+
+    const [leaderboard, setLeaderboard] = useState<any[]>([
+        { rank: 1, username: 'Loading...', avatar: '⏳', score: 0, received: 0, sent: 0, balance: 0 },
+        { rank: 2, username: 'Loading...', avatar: '⏳', score: 0, received: 0, sent: 0, balance: 0 },
+        { rank: 3, username: 'Loading...', avatar: '⏳', score: 0, received: 0, sent: 0, balance: 0 }
+    ]);
+    const [isLeaderboardLoading, setIsLeaderboardLoading] = useState(false);
+
 
     // Fetch messages from blockchain (via REST view)
     const fetchMessages = async () => {
@@ -147,6 +153,7 @@ function Community({ walletConnected }: CommunityProps) {
         }
     };
 
+
     // Check if global chat has been initialized
     const checkGlobalChatInitialized = async () => {
         setIsCheckingGlobalChat(true);
@@ -182,10 +189,204 @@ function Community({ walletConnected }: CommunityProps) {
         // Always fetch messages, regardless of wallet connection
         checkGlobalChatInitialized();
         fetchMessages();
-        // Refresh messages every 10 seconds
-        const interval = setInterval(fetchMessages, 10000);
+        fetchGlobalLeaderboard();
+
+        // Refresh data periodically
+        const interval = setInterval(() => {
+            fetchMessages();
+            fetchGlobalLeaderboard();
+        }, 15000);
         return () => clearInterval(interval);
     }, []);
+
+    const fetchGlobalLeaderboard = async () => {
+        if (isLeaderboardLoading) return;
+        setIsLeaderboardLoading(true);
+        try {
+            let rawEntries: any[] = [];
+
+            // 1. Try to get data directly from the new on-chain leaderboard function
+            try {
+                const response = await fetch(`${NETWORK_CONFIG.REST_URL}/view`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        function: MODULES.UPS.GET_LEADERBOARD,
+                        type_arguments: [],
+                        arguments: [],
+                    }),
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const entries = Array.isArray(data[0]) ? data[0] : [];
+                    if (entries.length > 0) {
+                        rawEntries = entries.map((e: any) => {
+                            if (typeof e === 'object' && e.user) {
+                                return {
+                                    address: e.user,
+                                    received: Number(e.received || 0),
+                                    sent: Number(e.sent || 0),
+                                    balance: Number(e.balance || 0),
+                                    total_claimed: Number(e.total_claimed || 0)
+                                };
+                            } else if (Array.isArray(e)) {
+                                // Positional fields: [user, balance, sent, received, total_claimed]
+                                return {
+                                    address: e[0],
+                                    balance: Number(e[1] || 0),
+                                    sent: Number(e[2] || 0),
+                                    received: Number(e[3] || 0),
+                                    total_claimed: Number(e[4] || 0)
+                                };
+                            }
+                            return null;
+                        }).filter(Boolean);
+                    }
+                }
+            } catch (err) {
+                console.warn('On-chain leaderboard fetch failed:', err);
+            }
+
+            // 2. Fallback to Indexer if on-chain failed or returned nothing
+            if (rawEntries.length === 0) {
+                try {
+                    const topProfiles = await getTopProfilesFromIndexer(20);
+                    if (topProfiles && topProfiles.length > 0) {
+                        rawEntries = topProfiles.map(p => ({
+                            address: p.address,
+                            received: 0, // Will be fetched below
+                            sent: 0,
+                            balance: 0
+                        }));
+                    }
+                } catch (err) {
+                    console.warn('Indexer failed');
+                }
+            }
+
+            // 3. Last Fallback: Discovery via Chat Messages
+            if (rawEntries.length === 0 && messages.length > 0) {
+                const addrs = Array.from(new Set(
+                    messages
+                        .filter(m => !m.is_anonymous && m.sender)
+                        .map(m => m.sender)
+                )).slice(0, 15);
+                rawEntries = addrs.map(a => ({ address: a, received: 0, sent: 0, balance: 0 }));
+            }
+
+            // Always add the current user if connected and not already in rawEntries
+            if (account?.address && !rawEntries.some(entry => entry.address === account.address.toString())) {
+                rawEntries.push({ address: account.address.toString(), received: 0, sent: 0, balance: 0 });
+            }
+
+            if (rawEntries.length === 0) {
+                setIsLeaderboardLoading(false);
+                return;
+            }
+
+            // Sort and slice the top candidates for profile resolution
+            // We sort by the current active filter initially
+            const topCandidates = rawEntries
+                .sort((a, b) => (b[leaderboardFilter] || 0) - (a[leaderboardFilter] || 0))
+                .slice(0, 15);
+
+            // Fetch missing profile data for the top candidates
+            const detailedLeaderboard = await Promise.all(topCandidates.map(async (entry) => {
+                const address = entry.address;
+                try {
+                    // Parallel profile and optional re-fetch of received (if on-chain failed to provide it)
+                    const promises: Promise<any>[] = [
+                        fetch(`${NETWORK_CONFIG.REST_URL}/view`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                function: MODULES.PROFILE.GET_FULL_PROFILE,
+                                type_arguments: [],
+                                arguments: [address],
+                            }),
+                        })
+                    ];
+
+                    // If received is 0 (fallback cases), fetch it specifically
+                    if (entry.received === 0) {
+                        promises.push(
+                            fetch(`${NETWORK_CONFIG.REST_URL}/view`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    function: MODULES.UPS.GET_UPS_RECEIVED,
+                                    type_arguments: [],
+                                    arguments: [address],
+                                }),
+                            })
+                        );
+                    }
+
+                    const responses = await Promise.all(promises);
+                    const profileRes = responses[0];
+                    const receivedUpdateRes = responses[1]; // Will be undefined if not fetched
+
+                    let username = 'Unknown';
+                    let rawPfp = '';
+
+                    if (profileRes.ok) {
+                        const profileData = await profileRes.json();
+                        const profile = profileData[0];
+                        if (profile) {
+                            if (typeof profile === 'object' && profile.username) {
+                                username = profile.username;
+                                rawPfp = profile.pfp;
+                            } else if (Array.isArray(profile)) {
+                                username = profile[1] || 'Unknown';
+                                rawPfp = profile[3] || '';
+                            }
+                        }
+                    } else {
+                        const msg = messages.find(m => m.sender === address);
+                        if (msg) username = msg.sender_username;
+                    }
+
+                    if (receivedUpdateRes && receivedUpdateRes.ok) {
+                        const res = await receivedUpdateRes.json();
+                        entry.received = Number(res[0] || 0);
+                    }
+
+                    let pfp = rawPfp;
+                    if (pfp && pfp.includes('pbs.twimg.com')) {
+                        pfp = pfp.replace('_normal', '_400x400').replace('_bigger', '_400x400').replace('_mini', '_400x400');
+                    }
+
+                    return {
+                        ...entry,
+                        username: username,
+                        avatar: pfp || username.charAt(0).toUpperCase(),
+                        isPfp: !!pfp
+                    };
+                } catch (err) {
+                    return { ...entry, username: 'Unknown', avatar: '?', isPfp: false };
+                }
+            }));
+
+            // Filter out failures and sort by score
+            const sorted = detailedLeaderboard
+                .filter(u => u !== null)
+                .sort((a, b) => (b[leaderboardFilter] || 0) - (a[leaderboardFilter] || 0))
+                .slice(0, 10)
+                .map((u, index) => ({
+                    ...u,
+                    rank: index + 1,
+                    score: u[leaderboardFilter] || 0
+                }));
+
+            setLeaderboard(sorted);
+            setLeaderboardData(detailedLeaderboard); // Store full data for fast switching
+        } catch (err) {
+            console.error('Error updating leaderboard:', err);
+        } finally {
+            setIsLeaderboardLoading(false);
+        }
+    };
 
     const handleSendMessage = async () => {
         setChatError('');
@@ -257,25 +458,63 @@ function Community({ walletConnected }: CommunityProps) {
             <div className="community-layout">
                 <div className="leaderboard-section card">
                     <div className="section-header">
-                        <h2><img src="/king.png" alt="King" className="crown-icon" /> Top Speakers</h2>
-                        <select className="leaderboard-filter">
-                            <option>All Time</option>
-                            <option>This Week</option>
-                            <option>This Month</option>
+                        <h2><img src="/king.png" alt="King" className="crown-icon" /> Global Rankings</h2>
+                        <select
+                            className="leaderboard-filter"
+                            value={leaderboardFilter}
+                            onChange={(e) => {
+                                const newFilter = e.target.value as any;
+                                setLeaderboardFilter(newFilter);
+                                // Local sort
+                                const sorted = [...leaderboardData]
+                                    .sort((a, b) => (b[newFilter] || 0) - (a[newFilter] || 0))
+                                    .slice(0, 10)
+                                    .map((u, index) => ({
+                                        ...u,
+                                        rank: index + 1,
+                                        score: u[newFilter] || 0
+                                    }));
+                                setLeaderboard(sorted);
+                            }}
+                        >
+                            <option value="received">Stars Received</option>
+                            <option value="balance">Stars Balance</option>
+                            <option value="sent">Stars Sent</option>
                         </select>
                     </div>
                     <div className="leaderboard-list">
-                        {leaderboard.map(user => (
-                            <div key={user.rank} className={`leaderboard-item rank-${user.rank}`}>
+                        {isLeaderboardLoading && leaderboard[0].username === 'Loading...' ? (
+                            <div className="leaderboard-loading">
+                                <div className="loader"></div>
+                                <p>Syncing On-Chain Data...</p>
+                            </div>
+                        ) : leaderboard.length === 0 ? (
+                            <div className="no-data">No users found yet. Start the journey!</div>
+                        ) : leaderboard.map(user => (
+                            <div key={user.address || user.rank} className={`leaderboard-item rank-${user.rank}`}>
                                 <div className="rank-badge">{user.rank}</div>
                                 <div className="user-info">
-                                    <div className="user-avatar">{user.avatar}</div>
+                                    <div className="user-avatar">
+                                        {user.isPfp ? (
+                                            <img src={user.avatar} alt={user.username} className="avatar-img" />
+                                        ) : (
+                                            user.avatar
+                                        )}
+                                    </div>
                                     <div className="user-details">
                                         <div className="user-name">{user.username}</div>
-                                        <div className="user-stats">{user.streak} day streak</div>
+                                        <div className="user-stats">
+                                            {user.address?.slice(0, 6)}...{user.address?.slice(-4)}
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="user-score">{user.score.toLocaleString()} UPS</div>
+                                <div className="user-score">
+                                    <span className="score-value">{user.score.toLocaleString()}</span>
+                                    <span className="score-label">
+                                        {leaderboardFilter === 'received' ? 'Stars Received' :
+                                            leaderboardFilter === 'sent' ? 'Stars Sent' : 'Balance'}
+                                    </span>
+                                </div>
                             </div>
                         ))}
                     </div>

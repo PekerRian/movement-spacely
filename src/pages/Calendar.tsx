@@ -50,6 +50,7 @@ function Calendar({ walletConnected }: CalendarProps) {
         spaceLink: ''
     });
 
+
     const handleGenreToggle = (genre: string) => {
         setFormData(prev => {
             if (prev.genres.includes(genre)) {
@@ -67,7 +68,6 @@ function Calendar({ walletConnected }: CalendarProps) {
         myEvents: false,
         upcoming: false,
     });
-    const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
 
     const handleFilterChange = (key: keyof typeof filterState) => {
         setFilterState(prev => ({ ...prev, [key]: !prev[key] }));
@@ -82,6 +82,9 @@ function Calendar({ walletConnected }: CalendarProps) {
             }
         });
     };
+
+    const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+
 
 
 
@@ -313,7 +316,7 @@ function Calendar({ walletConnected }: CalendarProps) {
             });
 
             console.log('Event created:', response);
-            alert('🎉 Event created successfully!');
+            alert('🎉 Space created successfully!');
 
             // Refresh events list
             await fetchEvents();
@@ -332,13 +335,13 @@ function Calendar({ walletConnected }: CalendarProps) {
             console.error('Error creating event:', error);
             const errorMessage = error?.message || 'Unknown error';
             if (errorMessage.includes('E_NO_PROFILE')) {
-                alert('❌ Please create a profile first before creating events!');
+                alert('❌ Please create a profile first before creating spaces!');
             } else if (errorMessage.includes('E_INVALID_TIME')) {
-                alert('❌ Invalid event time. Please check your dates and times.');
+                alert('❌ Invalid space time. Please check your dates and times.');
             } else if (errorMessage.includes('E_EVENT_OVERLAP')) {
-                alert('❌ You already have an event at this time.');
+                alert('❌ You already have a space at this time.');
             } else {
-                alert(`❌ Error creating event: ${errorMessage}`);
+                alert(`❌ Error creating space: ${errorMessage}`);
             }
         } finally {
             setIsLoading(false);
@@ -589,6 +592,7 @@ function Calendar({ walletConnected }: CalendarProps) {
             }
         }
 
+
         // 2. Genre Filter
         if (selectedGenres.length > 0) {
             // If event has no genres but filtering is active, exclude it
@@ -654,6 +658,7 @@ function Calendar({ walletConnected }: CalendarProps) {
                 selectedDate.getMonth() === month &&
                 selectedDate.getDate() === day;
 
+
             // Check if today
             const isToday = today.getFullYear() === year &&
                 today.getMonth() === month &&
@@ -682,8 +687,8 @@ function Calendar({ walletConnected }: CalendarProps) {
     return (
         <div className="calendar-page page-enter">
             <div className="page-header">
-                <h1 className="page-title">Events Calendar</h1>
-                <p className="page-subtitle">Discover and create community events</p>
+                <h1 className="page-title">Space Calendar</h1>
+                <p className="page-subtitle">Discover and create community spaces</p>
             </div>
             <div className="calendar-layout">
                 <div className="calendar-sidebar">
@@ -710,7 +715,7 @@ function Calendar({ walletConnected }: CalendarProps) {
                         }}
                     >
                         <span className="btn-icon">➕</span>
-                        Create Event
+                        Create Space
                     </button>
 
                     {/* Admin Initialize Button */}
@@ -727,7 +732,7 @@ function Calendar({ walletConnected }: CalendarProps) {
                                             functionArguments: []
                                         }
                                     });
-                                    alert('🎉 Calendar initialized! Now creating events will work for everyone.');
+                                    alert('🎉 Calendar initialized! Now creating spaces will work for everyone.');
                                     fetchEvents();
                                 } catch (e) {
                                     console.error(e);
@@ -749,14 +754,14 @@ function Calendar({ walletConnected }: CalendarProps) {
                                     type="checkbox"
                                     checked={filterState.allEvents}
                                     onChange={() => handleFilterChange('allEvents')}
-                                /> All Events
+                                /> All Spaces
                             </label>
                             <label className="filter-option">
                                 <input
                                     type="checkbox"
                                     checked={filterState.myEvents}
                                     onChange={() => handleFilterChange('myEvents')}
-                                /> My Events
+                                /> My Spaces
                             </label>
                             <label className="filter-option">
                                 <input
@@ -782,6 +787,7 @@ function Calendar({ walletConnected }: CalendarProps) {
                             ))}
                         </div>
                     </div>
+
                 </div>
                 <div className="calendar-main">
                     <div className="calendar-view">
@@ -818,8 +824,8 @@ function Calendar({ walletConnected }: CalendarProps) {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                             <h3>
                                 {selectedDate
-                                    ? `Events for ${selectedDate.toLocaleDateString()}`
-                                    : 'Upcoming Events'}
+                                    ? `Spaces for ${selectedDate.toLocaleDateString()}`
+                                    : 'Upcoming Spaces'}
                             </h3>
                             {selectedDate && (
                                 <button
@@ -841,8 +847,8 @@ function Calendar({ walletConnected }: CalendarProps) {
                         <div className="events-list">
                             {finalEvents.length === 0 ? (
                                 <div style={{ textAlign: 'center', padding: '2rem', opacity: 0.6 }}>
-                                    <p>{selectedDate ? 'No events on this day.' : 'No events scheduled yet.'}</p>
-                                    <p>Be the first to create an event!</p>
+                                    <p>{selectedDate ? 'No spaces on this day.' : 'No spaces scheduled yet.'}</p>
+                                    <p>Be the first to create a space!</p>
                                 </div>
                             ) : (
                                 finalEvents.map((event, index) => {
@@ -908,6 +914,7 @@ function Calendar({ walletConnected }: CalendarProps) {
                                                         <span key={i} className="genre-badge">{genre}</span>
                                                     ))}
                                                 </div>
+
                                                 <div className="event-actions" style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
                                                     {(() => {
                                                         const key = `${event.creator}-${event.name}`;
@@ -1024,12 +1031,12 @@ function Calendar({ walletConnected }: CalendarProps) {
                     <div className="modal active" onClick={() => setShowModal(false)}>
                         <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                             <div className="modal-header">
-                                <h2>Create New Event</h2>
+                                <h2>Create New Space</h2>
                                 <button className="modal-close" onClick={() => setShowModal(false)}>&times;</button>
                             </div>
                             <form onSubmit={handleCreateEvent} className="modal-form">
                                 <div className="form-group">
-                                    <label>Event Name</label>
+                                    <label>Space Name</label>
                                     <input
                                         type="text"
                                         value={formData.eventName}
@@ -1122,7 +1129,7 @@ function Calendar({ walletConnected }: CalendarProps) {
                                         Cancel
                                     </button>
                                     <button type="submit" className="primary-btn" disabled={isLoading}>
-                                        {isLoading ? '⏳ Creating...' : 'Create Event'}
+                                        {isLoading ? '⏳ Creating...' : 'Create Space'}
                                     </button>
                                 </div>
                             </form>

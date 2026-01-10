@@ -1,11 +1,12 @@
 // Contract addresses and constants for Spacely on Movement Network
-export const MODULE_ADDRESS = '7464bb9414a8a8fe709822b6dfc9c8a9da3df7cf5b0d191ae22da6d43063dca8';
+export const MODULE_ADDRESS = '0xe9001a042dffbfc16b68bd3b3bbeb51efab4abded5b038d4a8f138a5b6d95988';
 
 // Module functions
 export const MODULES = {
     PROFILE: {
         CREATE_PROFILE: `${MODULE_ADDRESS}::profile::create_profile` as `${string}::${string}::${string}`,
         GET_PROFILE: `${MODULE_ADDRESS}::profile::get_profile_with_status` as `${string}::${string}::${string}`,
+        GET_FULL_PROFILE: `${MODULE_ADDRESS}::profile::get_full_profile_info` as `${string}::${string}::${string}`,
         HAS_PROFILE: `${MODULE_ADDRESS}::profile::has_profile` as `${string}::${string}::${string}`,
         TRANSFER_TOKENS: `${MODULE_ADDRESS}::profile::transfer_tokens` as `${string}::${string}::${string}`,
     },
@@ -50,21 +51,25 @@ export const MODULES = {
         INITIALIZE_ACCOUNT: `${MODULE_ADDRESS}::ups::initialize_account` as `${string}::${string}::${string}`,
         CLAIM_DAILY: `${MODULE_ADDRESS}::ups::claim_daily` as `${string}::${string}::${string}`,
         SEND_UPS: `${MODULE_ADDRESS}::ups::send_ups` as `${string}::${string}::${string}`,
+        GENERATE_AND_SEND_UPS: `${MODULE_ADDRESS}::ups::generate_and_send_ups` as `${string}::${string}::${string}`,
         GET_BALANCE: `${MODULE_ADDRESS}::ups::get_balance` as `${string}::${string}::${string}`,
         GET_STREAK: `${MODULE_ADDRESS}::ups::get_streak` as `${string}::${string}::${string}`,
         GET_TOTAL_CLAIMED: `${MODULE_ADDRESS}::ups::get_total_claimed` as `${string}::${string}::${string}`,
+        GET_UPS_SENT: `${MODULE_ADDRESS}::ups::get_ups_sent` as `${string}::${string}::${string}`,
+        GET_UPS_RECEIVED: `${MODULE_ADDRESS}::ups::get_ups_received` as `${string}::${string}::${string}`,
         GET_FULL_ACCOUNT_INFO: `${MODULE_ADDRESS}::ups::get_full_account_info` as `${string}::${string}::${string}`,
-        CAN_CLAIM: `${MODULE_ADDRESS}::ups::can_claim` as `${string}::${string}::${string}`,
+        CAN_CLAIM: `${MODULE_ADDRESS}::ups::can_claim_today` as `${string}::${string}::${string}`,
         GET_NEXT_CLAIM_AMOUNT: `${MODULE_ADDRESS}::ups::get_next_claim_amount` as `${string}::${string}::${string}`,
         GET_TIME_UNTIL_NEXT_CLAIM: `${MODULE_ADDRESS}::ups::get_time_until_next_claim` as `${string}::${string}::${string}`,
         HAS_ACCOUNT: `${MODULE_ADDRESS}::ups::has_account` as `${string}::${string}::${string}`,
+        GET_LEADERBOARD: `${MODULE_ADDRESS}::ups::get_leaderboard_data` as `${string}::${string}::${string}`,
     },
 };
 
 // Network configuration
 export const NETWORK_CONFIG = {
     REST_URL: 'https://testnet.movementnetwork.xyz/v1',
-    INDEXER_URL: 'https://api.testnet.movementnetwork.xyz/graphql',
+    INDEXER_URL: 'https://hasura.testnet.movementnetwork.xyz/v1/graphql',
     FAUCET_URL: 'https://faucet.testnet.movementnetwork.xyz/',
     EXPLORER_URL: 'https://explorer.movementnetwork.xyz',
 };

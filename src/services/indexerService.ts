@@ -172,6 +172,34 @@ export async function getProfileFromIndexer(userAddress: string): Promise<any | 
 }
 
 /**
+ * Get top profiles for leaderboard
+ */
+export async function getTopProfilesFromIndexer(limit: number = 20): Promise<any[] | null> {
+    const query = `
+        query GetTopProfiles($limit: Int!) {
+            profiles(
+                order_by: [{received: desc}]
+                limit: $limit
+            ) {
+                address
+                username
+                twitter
+                pfp
+                sent
+                received
+                status
+            }
+        }
+    `;
+
+    const variables = { limit };
+
+    console.log('Fetching top profiles from indexer');
+    const result = await queryIndexer<{ profiles: any[] }>(query, variables);
+    return result?.profiles || null;
+}
+
+/**
  * Subscribe to new messages (optional - uses GraphQL subscriptions)
  * Real-time updates without polling
  */
@@ -179,5 +207,5 @@ export async function subscribeToMessages(): Promise<() => void> {
     // This would require WebSocket support
     // For now, returning a no-op unsubscribe function
     console.log('Message subscription would use WebSocket connections');
-    return () => {};
+    return () => { };
 }

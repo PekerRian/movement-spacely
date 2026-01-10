@@ -55,7 +55,7 @@ function WelcomeBackModal({ isOpen, username, walletAddress, onClose }: WelcomeB
                     <div className="quick-actions">
                         <div className="action-item" onClick={onClose}>
                             <span className="action-icon">📅</span>
-                            <span className="action-label">View Events</span>
+                            <span className="action-label">View Spaces</span>
                         </div>
                         <div className="action-item" onClick={onClose}>
                             <span className="action-icon">💬</span>

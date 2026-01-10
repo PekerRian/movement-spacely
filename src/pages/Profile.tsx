@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useWallet } from '@aptos-labs/wallet-adapter-react';
-import { MODULES, NETWORK_CONFIG } from '../constants/contracts';
+import { MODULES, NETWORK_CONFIG, MODULE_ADDRESS } from '../constants/contracts';
 import AddContactModal from '../components/AddContactModal';
 import DirectMessageModal from '../components/DirectMessageModal';
 import MessageViewer from '../components/MessageViewer';
 import SendModal from '../components/SendModal';
+import SuccessModal from '../components/SuccessModal';
 import './Profile.css';
 
 interface ProfileProps {
@@ -21,15 +22,21 @@ interface ProfileData {
     sent: number;
     received: number;
     balance: number;
+    stars_sent: number;
+    stars_received: number;
     status: string;
 }
 
 function Profile({ walletConnected, walletAddress }: ProfileProps) {
     const { account } = useWallet();
-    const [activeTab, setActiveTab] = useState<'contacts' | 'messages'>('contacts');
+    const [activeTab, setActiveTab] = useState<'contacts' | 'messages' | 'admin'>('contacts');
     const [profile, setProfile] = useState<ProfileData | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [adminRecipient, setAdminRecipient] = useState('');
+    const [adminAmount, setAdminAmount] = useState('');
+    const [isAdminSending, setIsAdminSending] = useState(false);
+    const [successModal, setSuccessModal] = useState({ isOpen: false, title: '', message: '' });
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -42,7 +49,7 @@ function Profile({ walletConnected, walletAddress }: ProfileProps) {
                 setLoading(true);
                 setError('');
 
-                const [profileResponse, upsResponse] = await Promise.all([
+                const [profileResponse, upsInfoResponse] = await Promise.all([
                     fetch(`${NETWORK_CONFIG.REST_URL}/view`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -56,7 +63,7 @@ function Profile({ walletConnected, walletAddress }: ProfileProps) {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            function: MODULES.UPS.GET_BALANCE,
+                            function: MODULES.UPS.GET_FULL_ACCOUNT_INFO,
                             type_arguments: [],
                             arguments: [account.address.toString()],
                         }),
@@ -69,17 +76,19 @@ function Profile({ walletConnected, walletAddress }: ProfileProps) {
 
                 const result = await profileResponse.json();
 
-                // Parse UPS data safely
+                // Parse UPS data safely from full info
                 let balance = 0;
-                if (upsResponse.ok) {
-                    const upsResult = await upsResponse.json();
-                    console.log("UPS Data Fetch Result:", upsResult);
-                    if (Array.isArray(upsResult) && upsResult.length > 0) {
-                        balance = Number(upsResult[0]);
-                        console.log("Parsed Balance:", balance);
+                let starsSent = 0;
+                let starsReceived = 0;
+
+                if (upsInfoResponse.ok) {
+                    const upsInfoResult = await upsInfoResponse.json();
+                    if (Array.isArray(upsInfoResult) && upsInfoResult.length >= 6) {
+                        // Info order: [balance, streak, last_claim, sent, received, total_claimed]
+                        balance = Number(upsInfoResult[0]);
+                        starsSent = Number(upsInfoResult[3]);
+                        starsReceived = Number(upsInfoResult[4]);
                     }
-                } else {
-                    console.error("UPS Data Fetch Failed:", upsResponse.status, upsResponse.statusText);
                 }
 
                 const [username, twitter, rawPfp, sentAmount, receivedAmount, statusCode] = result;
@@ -95,6 +104,8 @@ function Profile({ walletConnected, walletAddress }: ProfileProps) {
                     sent: Number(sentAmount),
                     received: Number(receivedAmount),
                     balance: balance,
+                    stars_sent: starsSent,
+                    stars_received: starsReceived,
                     status: Number(statusCode) === 1 ? 'Host' : 'Participant'
                 });
 
@@ -536,6 +547,38 @@ function Profile({ walletConnected, walletAddress }: ProfileProps) {
         }
     };
 
+    const handleGenerateAndSend = async () => {
+        if (!adminRecipient || !adminAmount) {
+            alert('Please provide recipient and amount');
+            return;
+        }
+
+        setIsAdminSending(true);
+        try {
+            await signAndSubmitTransaction({
+                data: {
+                    function: MODULES.UPS.GENERATE_AND_SEND_UPS,
+                    typeArguments: [],
+                    functionArguments: [adminRecipient, Math.floor(Number(adminAmount))]
+                }
+            });
+            setSuccessModal({
+                isOpen: true,
+                title: 'Stars Generated! 🌟',
+                message: `Successfully generated and sent ${adminAmount} Stars to ${adminRecipient}!`
+            });
+            setAdminRecipient('');
+            setAdminAmount('');
+        } catch (err: any) {
+            console.error('Admin send failed:', err);
+            alert('Admin send failed: ' + (err.message || 'Unknown error'));
+        } finally {
+            setIsAdminSending(false);
+        }
+    };
+
+    const isAdmin = account?.address?.toString() === MODULE_ADDRESS;
+
     return (
         <div className="profile-page page-enter">
             <div className="page-header">
@@ -590,6 +633,14 @@ function Profile({ walletConnected, walletAddress }: ProfileProps) {
                                         <div className="stat-label">Stars Balance</div>
                                     </div>
                                     <div className="stat-item">
+                                        <div className="stat-value">{profile.stars_sent || 0}</div>
+                                        <div className="stat-label">Stars Sent</div>
+                                    </div>
+                                    <div className="stat-item">
+                                        <div className="stat-value">{profile.stars_received || 0}</div>
+                                        <div className="stat-label">Stars Received</div>
+                                    </div>
+                                    <div className="stat-item">
                                         <div className="stat-value">{profile.status}</div>
                                         <div className="stat-label">Status</div>
                                     </div>
@@ -618,6 +669,14 @@ function Profile({ walletConnected, walletAddress }: ProfileProps) {
                         >
                             Messages
                         </button>
+                        {isAdmin && (
+                            <button
+                                className={`profile-tab ${activeTab === 'admin' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('admin')}
+                            >
+                                Admin
+                            </button>
+                        )}
                     </div>
 
                     <div className="profile-tab-content">
@@ -710,6 +769,64 @@ function Profile({ walletConnected, walletAddress }: ProfileProps) {
                             </div>
                         )}
 
+                        {activeTab === 'admin' && isAdmin && (
+                            <div className="tab-pane active">
+                                <div className="tab-header">
+                                    <h3>Admin Dashboard</h3>
+                                </div>
+                                <div className="admin-form card" style={{
+                                    padding: '2rem',
+                                    marginTop: '1rem',
+                                    background: 'rgba(255, 255, 255, 0.03)',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    borderRadius: '16px'
+                                }}>
+                                    <h4 style={{ marginBottom: '1.5rem', color: '#ffb700' }}>Generate & Send Stars</h4>
+                                    <div style={{ marginBottom: '1.5rem' }}>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', opacity: 0.8 }}>Recipient Address</label>
+                                        <input
+                                            type="text"
+                                            placeholder="0x..."
+                                            value={adminRecipient}
+                                            onChange={(e) => setAdminRecipient(e.target.value)}
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.8rem',
+                                                background: 'rgba(0, 0, 0, 0.2)',
+                                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                borderRadius: '8px',
+                                                color: 'white'
+                                            }}
+                                        />
+                                    </div>
+                                    <div style={{ marginBottom: '1.5rem' }}>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', opacity: 0.8 }}>Amount</label>
+                                        <input
+                                            type="number"
+                                            placeholder="100"
+                                            value={adminAmount}
+                                            onChange={(e) => setAdminAmount(e.target.value)}
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.8rem',
+                                                background: 'rgba(0, 0, 0, 0.2)',
+                                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                borderRadius: '8px',
+                                                color: 'white'
+                                            }}
+                                        />
+                                    </div>
+                                    <button
+                                        className="primary-btn"
+                                        onClick={handleGenerateAndSend}
+                                        disabled={isAdminSending}
+                                        style={{ width: '100%' }}
+                                    >
+                                        {isAdminSending ? 'Sending...' : 'Generate & Send'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                         {activeTab === 'messages' && (
                             <div className="tab-pane active">
                                 <div className="tab-header">
@@ -766,7 +883,6 @@ function Profile({ walletConnected, walletAddress }: ProfileProps) {
                                                     <div
                                                         key={conversation.other_party}
                                                         className="conversation-item"
-                                                        onClick={() => handleMarkAsRead(conversation.other_party)}
                                                     >
                                                         <div className="conversation-avatar">
                                                             {profilePictures[conversation.other_party] ? (
@@ -829,6 +945,15 @@ function Profile({ walletConnected, walletAddress }: ProfileProps) {
                     </div>
                 </div>
             </div>
+
+            {successModal.isOpen && (
+                <SuccessModal
+                    isOpen={successModal.isOpen}
+                    title={successModal.title}
+                    message={successModal.message}
+                    onClose={() => setSuccessModal({ ...successModal, isOpen: false })}
+                />
+            )}
 
             {/* Add Contact Modal */}
             <AddContactModal
