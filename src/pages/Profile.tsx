@@ -520,33 +520,6 @@ function Profile({ walletConnected, walletAddress }: ProfileProps) {
         }
     }, [walletConnected, activeTab, account?.address]);
 
-    const handleMarkAsRead = async (otherPartyAddress: string) => {
-        if (!account?.address) return;
-
-        try {
-            const payload = {
-                data: {
-                    function: MODULES.CHAT.MARK_CONVERSATION_READ,
-                    typeArguments: [],
-                    functionArguments: [otherPartyAddress]
-                }
-            };
-
-            await signAndSubmitTransaction(payload);
-
-            // Update local state
-            setConversations(prev =>
-                prev.map(conv =>
-                    conv.other_party === otherPartyAddress
-                        ? { ...conv, unread_count: 0 }
-                        : conv
-                )
-            );
-        } catch (err) {
-            console.error('Error marking as read:', err);
-        }
-    };
-
     const handleGenerateAndSend = async () => {
         if (!adminRecipient || !adminAmount) {
             alert('Please provide recipient and amount');

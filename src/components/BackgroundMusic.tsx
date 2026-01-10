@@ -31,7 +31,7 @@ export default function BackgroundMusic() {
                         document.removeEventListener('mousemove', handleFirstInteraction);
                         document.removeEventListener('touchstart', handleFirstInteraction);
                         document.removeEventListener('click', handleFirstInteraction);
-                    }).catch(err => console.log("Still waiting for interaction..."));
+                    }).catch(() => console.log("Still waiting for interaction..."));
                 };
 
                 document.addEventListener('mousemove', handleFirstInteraction);
