@@ -26,6 +26,8 @@ interface BlockchainEvent {
 function Calendar({ walletConnected }: CalendarProps) {
     const { signAndSubmitTransaction, account } = useWallet();
     const [showModal, setShowModal] = useState(false);
+    const [showHostRequestModal, setShowHostRequestModal] = useState(false);
+    const [userStatus, setUserStatus] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [events, setEvents] = useState<BlockchainEvent[]>([]);
 
@@ -270,8 +272,6 @@ function Calendar({ walletConnected }: CalendarProps) {
                 const res = await fetch(`${NETWORK_CONFIG.REST_URL}/accounts/${MODULE_ADDRESS}/resource/${MODULE_ADDRESS}::space::GlobalSchedule`);
                 if (res.ok) setIsSpaceInitialized(true);
             } catch { }
-
-
         };
         checkInit();
 
@@ -279,6 +279,40 @@ function Calendar({ walletConnected }: CalendarProps) {
         const interval = setInterval(fetchEvents, 30000);
         return () => clearInterval(interval);
     }, []);
+
+    // Check current user's host status
+    useEffect(() => {
+        const checkStatus = async () => {
+            if (!account?.address) {
+                setUserStatus(null);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${NETWORK_CONFIG.REST_URL}/view`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        function: MODULES.PROFILE.GET_PROFILE,
+                        type_arguments: [],
+                        arguments: [account.address.toString()],
+                    }),
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result && result.length >= 6) {
+                        const statusCode = Number(result[5]);
+                        setUserStatus(statusCode);
+                    }
+                }
+            } catch (err) {
+                console.error('Error checking host status:', err);
+            }
+        };
+
+        checkStatus();
+    }, [account?.address]);
 
     const handleCreateEvent = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -711,7 +745,13 @@ function Calendar({ walletConnected }: CalendarProps) {
                                     eventDate: dateStr
                                 }));
                             }
-                            setShowModal(true);
+
+                            // Only allow hosts (status 1) to open the modal
+                            if (userStatus === 1) {
+                                setShowModal(true);
+                            } else {
+                                setShowHostRequestModal(true);
+                            }
                         }}
                     >
                         <span className="btn-icon">➕</span>
@@ -1260,6 +1300,29 @@ function Calendar({ walletConnected }: CalendarProps) {
                     </div>
                 )
             }
+            {/* Host Request Modal */}
+            <div className={`modal ${showHostRequestModal ? 'active' : ''}`} onClick={(e) => {
+                if (e.target === e.currentTarget) setShowHostRequestModal(false);
+            }}>
+                <div className="modal-content" style={{ padding: '2rem', textAlign: 'center', width: '90%', maxWidth: '500px' }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🛡️</div>
+                    <h2 style={{ marginBottom: '1rem', color: '#ffd700', fontFamily: 'var(--font-display)' }}>Host Status Required</h2>
+                    <p style={{ lineHeight: '1.6', marginBottom: '2rem', fontSize: '1.1rem', color: 'var(--color-text-secondary)' }}>
+                        I'm sorry you are not a host, please add <br />
+                        <strong style={{ color: '#ffd700', wordBreak: 'break-all', display: 'block', margin: '1.5rem 0', padding: '1rem', background: 'rgba(255, 215, 0, 0.1)', borderRadius: '8px', border: '1px solid rgba(255, 215, 0, 0.2)', fontFamily: 'monospace', fontSize: '0.9rem' }}>
+                            0xe9001a042dffbfc16b68bd3b3bbeb51efab4abded5b038d4a8f138a5b6d95988
+                        </strong>
+                        to your contacts and send message to request for HOST status
+                    </p>
+                    <button
+                        className="primary-btn"
+                        onClick={() => setShowHostRequestModal(false)}
+                        style={{ width: '100%' }}
+                    >
+                        Got it!
+                    </button>
+                </div>
+            </div>
 
         </div >
     );
